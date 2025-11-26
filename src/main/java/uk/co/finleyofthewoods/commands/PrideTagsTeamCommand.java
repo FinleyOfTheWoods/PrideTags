@@ -51,10 +51,15 @@ public class PrideTagsTeamCommand {
 
     private static CompletableFuture<Suggestions> suggestColours(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
         PrideTagsColour[] teams = PrideTagsColourConfig.get().getTeams();
-        String value = getString(context, "colour");
+        String value = "";
+        try {
+            value = getString(context, "colour");
+        } catch (Exception e) {
+            LOGGER.debug("[{}] Failed to get pronouns value", Pridetags.MOD_ID, e);
+        }
         LOGGER.debug("[{}] Suggesting colours {} for value of {}", Pridetags.MOD_ID, Arrays.toString(teams), value);
         for (PrideTagsColour team : teams) {
-            if (!team.getName().toLowerCase().startsWith(value.toLowerCase())) continue;
+            if (!team.getName().toLowerCase().contains(value.toLowerCase())) continue;
             builder.suggest(team.getName());
         }
         return builder.buildFuture();
@@ -62,10 +67,16 @@ public class PrideTagsTeamCommand {
 
     private static CompletableFuture<Suggestions> suggestPronouns(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
         PrideTagsPronouns[] pronouns = PrideTagsPronounsConfig.get().getPronouns();
-        String value = getString(context, "colour");
+        String value = "";
+        try {
+            value = getString(context, "pronouns");
+        } catch (Exception e) {
+            LOGGER.debug("[{}] Failed to get pronouns value", Pridetags.MOD_ID, e);
+        }
+
         LOGGER.debug("[{}] Suggesting pronouns {} for value of {}", Pridetags.MOD_ID, Arrays.toString(pronouns), value);
         for (PrideTagsPronouns pronoun : pronouns) {
-            if (!pronoun.getName().toLowerCase().startsWith(value.toLowerCase())) continue;
+            if (!pronoun.getName().toLowerCase().contains(value.toLowerCase())) continue;
             builder.suggest(pronoun.getName());
         }
         return builder.buildFuture();
