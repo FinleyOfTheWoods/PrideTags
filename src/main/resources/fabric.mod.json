@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "pridetags",
+  "version": "${version}",
+  "name": "PrideTags",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "MPL-2.0",
+  "icon": "assets/pridetags/icon.png",
+  "environment": "server",
+  "entrypoints": {
+    "fabric-datagen": [
+      "uk.co.finleyofthewoods.pridetags.client.PridetagsDataGenerator"
+    ],
+    "main": [
+      "uk.co.finleyofthewoods.pridetags.Pridetags"
+    ]
+  },
+  "mixins": [
+    "pridetags.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
