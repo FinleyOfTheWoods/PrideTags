@@ -3,15 +3,20 @@ package uk.co.finleyofthewoods.pridetags;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.finleyofthewoods.commands.PrideTagsTeamCommand;
-import uk.co.finleyofthewoods.pridetags.config.PrideTagsTeamsConfig;
+import uk.co.finleyofthewoods.pridetags.config.PrideTagsColourConfig;
 
 public class Pridetags implements ModInitializer {
     public static final String MOD_ID = "pridetags";
-    public static final String MOD_NAME = "Pride Tags";
-    public static final String MOD_VERSION = "1.0.0";
+    public static final String MOD_NAME = FabricLoader.getInstance().getModContainer(MOD_ID)
+            .map(modContainer -> modContainer.getMetadata().getName())
+            .orElse(Pridetags.class.getSimpleName());
+    public static final String MOD_VERSION = FabricLoader.getInstance().getModContainer(MOD_ID)
+            .map(modContainer -> modContainer.getMetadata().getVersion().getFriendlyString())
+            .orElse("unknown");
     private static final Logger LOGGER = LoggerFactory.getLogger(Pridetags.class);
 
     @Override
@@ -21,12 +26,12 @@ public class Pridetags implements ModInitializer {
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             LOGGER.info("[{}] Loading config...", MOD_ID);
-            PrideTagsTeamsConfig.load();
+            PrideTagsColourConfig.load();
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             LOGGER.info("[{}] Saving config...", MOD_ID);
-            PrideTagsTeamsConfig.save();
+            PrideTagsColourConfig.save();
         });
 
         CommandRegistrationCallback.EVENT.register(PrideTagsTeamCommand::register);

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "pridetags",
   "version": "${version}",
-  "name": "PrideTags",
+  "name": "${mod_name}",
   "description": "",
   "authors": [],
   "contact": {},

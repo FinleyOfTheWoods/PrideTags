@@ -16,8 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.finleyofthewoods.pridetags.Pridetags;
 import uk.co.finleyofthewoods.pridetags.config.PrideTagsPronouns;
-import uk.co.finleyofthewoods.pridetags.config.PrideTagsTeam;
-import uk.co.finleyofthewoods.pridetags.config.PrideTagsTeamsConfig;
+import uk.co.finleyofthewoods.pridetags.config.PrideTagsColour;
+import uk.co.finleyofthewoods.pridetags.config.PrideTagsColourConfig;
 import uk.co.finleyofthewoods.pridetags.config.PrideTagsPronounsConfig;
 
 import java.util.Arrays;
@@ -30,9 +30,11 @@ import static com.mojang.brigadier.arguments.StringArgumentType.getString;
 
 public class PrideTagsTeamCommand {
     private static final Logger LOGGER = LoggerFactory.getLogger(PrideTagsTeamCommand.class);
-    private static final PrideTagsTeamsConfig CONFIG = PrideTagsTeamsConfig.get();
+    private static final PrideTagsColourConfig CONFIG = PrideTagsColourConfig.get();
     private static final PrideTagsPronounsConfig PRONOUNS_CONFIG = PrideTagsPronounsConfig.get();
     private static final Formatting DEFAULT_COLOUR = Formatting.WHITE;
+    private static final String PRONOUNS_PREFIX = " • ";
+    private static final String TEAM_PREFIX = "pride_tag_";
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registryAccess, CommandManager.RegistrationEnvironment environment) {
         LOGGER.info("[{}] Registering command `/pridetag colour`", Pridetags.MOD_ID);
@@ -48,9 +50,11 @@ public class PrideTagsTeamCommand {
     }
 
     private static CompletableFuture<Suggestions> suggestColours(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
-        PrideTagsTeam[] teams = PrideTagsTeamsConfig.get().getTeams();
-        LOGGER.debug("[{}] Suggesting colours {}", Pridetags.MOD_ID, Arrays.toString(teams));
-        for (PrideTagsTeam team : teams) {
+        PrideTagsColour[] teams = PrideTagsColourConfig.get().getTeams();
+        String value = getString(context, "colour");
+        LOGGER.debug("[{}] Suggesting colours {} for value of {}", Pridetags.MOD_ID, Arrays.toString(teams), value);
+        for (PrideTagsColour team : teams) {
+            if (!team.getName().toLowerCase().startsWith(value.toLowerCase())) continue;
             builder.suggest(team.getName());
         }
         return builder.buildFuture();
@@ -58,8 +62,10 @@ public class PrideTagsTeamCommand {
 
     private static CompletableFuture<Suggestions> suggestPronouns(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
         PrideTagsPronouns[] pronouns = PrideTagsPronounsConfig.get().getPronouns();
-        LOGGER.debug("[{}] Suggesting pronouns {}", Pridetags.MOD_ID, Arrays.toString(pronouns));
+        String value = getString(context, "colour");
+        LOGGER.debug("[{}] Suggesting pronouns {} for value of {}", Pridetags.MOD_ID, Arrays.toString(pronouns), value);
         for (PrideTagsPronouns pronoun : pronouns) {
+            if (!pronoun.getName().toLowerCase().startsWith(value.toLowerCase())) continue;
             builder.suggest(pronoun.getName());
         }
         return builder.buildFuture();
@@ -75,12 +81,11 @@ public class PrideTagsTeamCommand {
                 source.sendFeedback(() -> Text.literal("You must be a player to use this command"), false);
                 return 0;
             }
-
             String colour = getString(context, "colour");
-            PrideTagsTeam[] teams = CONFIG.getTeams();
-            PrideTagsTeam selectedColour = null;
+            PrideTagsColour[] teams = CONFIG.getTeams();
+            PrideTagsColour selectedColour = null;
 
-            for (PrideTagsTeam team : teams) {
+            for (PrideTagsColour team : teams) {
                 LOGGER.debug("[{}] Checking team {}", Pridetags.MOD_ID, team.getName());
                 if (team.getName().equalsIgnoreCase(colour)){
                     LOGGER.info("[{}] Player {}, Selected teams {}", Pridetags.MOD_ID, player.getName().getString(), team.getName());
@@ -94,7 +99,7 @@ public class PrideTagsTeamCommand {
                 return 0;
             }
 
-            String teamName = "pridetag_" + player.getUuidAsString();
+            String teamName = TEAM_PREFIX + player.getUuidAsString();
             Scoreboard scoreboard = context.getSource().getServer().getScoreboard();
             Team currentTeam = scoreboard.getScoreHolderTeam(player.getNameForScoreboard());
 
@@ -156,12 +161,12 @@ public class PrideTagsTeamCommand {
                     return 0;
                 }
                 LOGGER.info("[{}] Player {} already in team {}, updating pronouns to: {}", Pridetags.MOD_ID, player.getName().getString(), currentTeam.getName(), selectedPronouns.getDisplay());
-                currentTeam.setSuffix(Text.literal(selectedPronouns.getDisplay()));
+                currentTeam.setSuffix(Text.literal(PRONOUNS_PREFIX + selectedPronouns.getDisplay()).formatted(Formatting.GRAY));
                 return 1;
             }
 
             LOGGER.info("[{}] Player {} not in team. Creating new team.", Pridetags.MOD_ID, player.getName().getString());
-            String teamName = "pride_" + player.getUuidAsString();
+            String teamName = TEAM_PREFIX + player.getUuidAsString();
             Team team = scoreboard.getTeam(teamName);
 
             if (team == null) {
@@ -169,7 +174,7 @@ public class PrideTagsTeamCommand {
                 team = scoreboard.addTeam(teamName);
             }
 
-            team.setSuffix(Text.literal(selectedPronouns.getDisplay()));
+            team.setSuffix(Text.literal(PRONOUNS_PREFIX + selectedPronouns.getDisplay()).formatted(Formatting.GRAY));
             team.setColor(DEFAULT_COLOUR);
             return 1;
         } catch (Exception e) {
@@ -189,9 +194,10 @@ public class PrideTagsTeamCommand {
             case "green" -> Formatting.GREEN;
             case "yellow" -> Formatting.YELLOW;
             case "gold" -> Formatting.GOLD;
-            case "purple" -> Formatting.DARK_PURPLE;
+            case "dark_purple" -> Formatting.DARK_PURPLE;
             case "light_purple" -> Formatting.LIGHT_PURPLE;
             case "black" -> Formatting.BLACK;
+            case "white" -> Formatting.WHITE;
             default -> DEFAULT_COLOUR;
         };
     }

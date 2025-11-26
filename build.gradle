@@ -38,12 +38,17 @@ processResources {
     inputs.property "version", project.version
     inputs.property "minecraft_version", project.minecraft_version
     inputs.property "loader_version", project.loader_version
+    inputs.property "mod_name", project.mod_name
     filteringCharset "UTF-8"
 
     filesMatching("fabric.mod.json") {
         expand "version": project.version,
                 "minecraft_version": project.minecraft_version,
-                "loader_version": project.loader_version
+                "loader_version": project.loader_version,
+                "mod_name": project.mod_name
+    }
+    filesMatching("**/*.java") {
+        expand "version": project.version
     }
 }
 

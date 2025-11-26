@@ -22,11 +22,19 @@ public class PrideTagsPronounsConfig {
     public PrideTagsPronounsConfig() {
         LOGGER.info("[{}] Loading default pronouns config", Pridetags.MOD_ID);
         this.pronouns = new PrideTagsPronouns[]{
-                new PrideTagsPronouns("they_them", " [They/Them]"),
-                new PrideTagsPronouns("he_him", " [He/Him]"),
-                new PrideTagsPronouns("she_her", " [She/Her]"),
-                new PrideTagsPronouns("she_they", " [She/They]"),
-                new PrideTagsPronouns("he_they", " [He/They]")
+                new PrideTagsPronouns("they_them", "They/Them"),
+                new PrideTagsPronouns("he_him", "He/Him"),
+                new PrideTagsPronouns("she_her", "She/Her"),
+                new PrideTagsPronouns("she_they", "She/They"),
+                new PrideTagsPronouns("he_they", "He/They"),
+                new PrideTagsPronouns("they_he", "They/He"),
+                new PrideTagsPronouns("they_she", "They/She"),
+                new PrideTagsPronouns("he_she", "He/She"),
+                new PrideTagsPronouns("it_its", "It/Its"),
+                new PrideTagsPronouns("any", "Any pronouns"),
+                new PrideTagsPronouns("none", "No Pronouns"),
+                new PrideTagsPronouns("name_only", "Name only"),
+                new PrideTagsPronouns("neopronouns", "Neopronouns")
         };
     }
 
@@ -53,9 +61,16 @@ public class PrideTagsPronounsConfig {
     }
 
     public static void save() {
-        try (FileWriter writer = new FileWriter(PRONOUNS_CONFIG_FILE)) {
-            LOGGER.info("[{}] Saving pronouns config to {}", Pridetags.MOD_ID, PRONOUNS_CONFIG_FILE.getAbsolutePath());
-            GSON.toJson(INSTANCE, writer);
+        try {
+            if (!PRONOUNS_CONFIG_FILE.getParentFile().exists()) {
+                LOGGER.info("[{}] Creating config directory {}", Pridetags.MOD_ID, PRONOUNS_CONFIG_FILE.getParentFile().getAbsolutePath());
+                boolean mkdirs = PRONOUNS_CONFIG_FILE.getParentFile().mkdirs();
+                if (!mkdirs) LOGGER.warn("[{}] Failed to create config directory {}", Pridetags.MOD_ID, PRONOUNS_CONFIG_FILE.getParentFile().getAbsolutePath());
+            }
+            try (FileWriter writer = new FileWriter(PRONOUNS_CONFIG_FILE)) {
+                LOGGER.info("[{}] Saving pronouns config to {}", Pridetags.MOD_ID, PRONOUNS_CONFIG_FILE.getAbsolutePath());
+                GSON.toJson(INSTANCE, writer);
+            }
         } catch (IOException e) {
             LOGGER.error("[{}] Failed to save pronouns config.", Pridetags.MOD_ID, e);
         }
