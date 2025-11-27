@@ -1,11 +1,11 @@
 # PrideTags
 
-PrideTags is a Minecraft Fabric mod designed to help players express their identity in-game. It allows server administrators and players to manage and display pronouns and customize colors for player tags.
+PrideTags is a Minecraft Fabric mod that helps players express their identity in-game. It allows server administrators and players to manage and display pronouns and customise player tag colours.
 
 ## Features
 
 *   **Pronoun Display**: Configurable system to display pronouns (e.g., He/Him, They/Them, She/Her, Neopronouns) for players.
-*   **Color Customization**: Support for customizing tag colors via `PrideTagsColourConfig`.
+*   **Colour Customisation**: Support for customising tag colours via `PrideTagsColourConfig`.
 *   **Persistence**: Configurations are automatically saved and loaded during the server lifecycle.
 *   **Commands**: In-game commands to manage teams and tags.
 
@@ -21,7 +21,7 @@ PrideTags is a Minecraft Fabric mod designed to help players express their ident
 Configuration files are generated in the `config/pride_tags/` directory after the first launch.
 
 *   **pronouns.json**: Defines the list of available pronouns.
-*   **colours.json**: Handles color definitions for tags.
+*   **colours.json**: Handles colour definitions for tags.
 
 You can edit these JSON files to add custom pronouns or modify existing ones.
 
