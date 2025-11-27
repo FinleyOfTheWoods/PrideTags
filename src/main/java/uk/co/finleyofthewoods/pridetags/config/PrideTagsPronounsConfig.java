@@ -32,7 +32,7 @@ public class PrideTagsPronounsConfig {
                 new PrideTagsPronouns("he_she", "He/She"),
                 new PrideTagsPronouns("it_its", "It/Its"),
                 new PrideTagsPronouns("any", "Any pronouns"),
-                new PrideTagsPronouns("none", "No Pronouns"),
+                new PrideTagsPronouns("no_pronouns", "No Pronouns"),
                 new PrideTagsPronouns("name_only", "Name only"),
                 new PrideTagsPronouns("neopronouns", "Neopronouns")
         };

@@ -12,6 +12,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.finleyofthewoods.pridetags.Pridetags;
@@ -46,11 +47,14 @@ public class PrideTagsTeamCommand {
                 .then(literal("pronouns")
                         .then(argument("pronouns", string())
                                 .suggests(PrideTagsTeamCommand::suggestPronouns)
-                                .executes(PrideTagsTeamCommand::executeSetPronouns))));
+                                .executes(PrideTagsTeamCommand::executeSetPronouns)))
+                .then(literal("reset")
+                        .then(literal("reset"))
+                        .executes(PrideTagsTeamCommand::executeReset)));
     }
 
     private static CompletableFuture<Suggestions> suggestColours(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
-        PrideTagsColour[] teams = PrideTagsColourConfig.get().getTeams();
+        PrideTagsColour[] teams = PrideTagsColourConfig.get().getColours();
         String value = "";
         try {
             value = getString(context, "colour");
@@ -59,8 +63,8 @@ public class PrideTagsTeamCommand {
         }
         LOGGER.debug("[{}] Suggesting colours {} for value of {}", Pridetags.MOD_ID, Arrays.toString(teams), value);
         for (PrideTagsColour team : teams) {
-            if (!team.getName().toLowerCase().contains(value.toLowerCase())) continue;
-            builder.suggest(team.getName());
+            if (!team.name().toLowerCase().contains(value.toLowerCase())) continue;
+            builder.suggest(team.name());
         }
         return builder.buildFuture();
     }
@@ -76,8 +80,8 @@ public class PrideTagsTeamCommand {
 
         LOGGER.debug("[{}] Suggesting pronouns {} for value of {}", Pridetags.MOD_ID, Arrays.toString(pronouns), value);
         for (PrideTagsPronouns pronoun : pronouns) {
-            if (!pronoun.getName().toLowerCase().contains(value.toLowerCase())) continue;
-            builder.suggest(pronoun.getName());
+            if (!pronoun.name().toLowerCase().contains(value.toLowerCase())) continue;
+            builder.suggest(pronoun.name());
         }
         return builder.buildFuture();
     }
@@ -93,13 +97,13 @@ public class PrideTagsTeamCommand {
                 return 0;
             }
             String colour = getString(context, "colour");
-            PrideTagsColour[] teams = CONFIG.getTeams();
+            PrideTagsColour[] teams = CONFIG.getColours();
             PrideTagsColour selectedColour = null;
 
             for (PrideTagsColour team : teams) {
-                LOGGER.debug("[{}] Checking team {}", Pridetags.MOD_ID, team.getName());
-                if (team.getName().equalsIgnoreCase(colour)){
-                    LOGGER.info("[{}] Player {}, Selected teams {}", Pridetags.MOD_ID, player.getName().getString(), team.getName());
+                LOGGER.debug("[{}] Checking team {}", Pridetags.MOD_ID, team.name());
+                if (team.name().equalsIgnoreCase(colour)){
+                    LOGGER.info("[{}] Player {}, Selected teams {}", Pridetags.MOD_ID, player.getName().getString(), team.name());
                     selectedColour = team;
                     break;
                 }
@@ -112,20 +116,25 @@ public class PrideTagsTeamCommand {
 
             String teamName = TEAM_PREFIX + player.getUuidAsString();
             Scoreboard scoreboard = context.getSource().getServer().getScoreboard();
-            Team currentTeam = scoreboard.getScoreHolderTeam(player.getNameForScoreboard());
+            final Team currentTeam = scoreboard.getScoreHolderTeam(player.getNameForScoreboard());
 
             if (currentTeam != null && currentTeam.getName().equals(teamName)) {
-                LOGGER.info("[{}] Player {} already in team {}, updating colour to: {}", Pridetags.MOD_ID, player.getName().getString(), teamName, selectedColour.getColour());
-                currentTeam.setColor(getFormattingFromString(selectedColour.getColour()));
+                LOGGER.info("[{}] Player {} already in team {}, updating colour to: {}", Pridetags.MOD_ID, player.getName().getString(), teamName, selectedColour.colour());
+                currentTeam.setColor(getFormattingFromString(selectedColour.colour()));
+                source.sendFeedback(() -> Text.literal("Pronouns set. Name will appear as: " + currentTeam.getDisplayName().getString()), false);
+
                 return 1;
             }
             Team team = scoreboard.getTeam(teamName);
             if (team == null) {
-                LOGGER.info("[{}] Team does not exist. Creating team {}", Pridetags.MOD_ID, selectedColour.getName());
+                LOGGER.info("[{}] Team does not exist. Creating team {}", Pridetags.MOD_ID, selectedColour.name());
                 team = scoreboard.addTeam(teamName);
-                team.setColor(getFormattingFromString(selectedColour.getColour()));
+                team.setColor(getFormattingFromString(selectedColour.colour()));
             }
             scoreboard.addScoreHolderToTeam(player.getNameForScoreboard(), team);
+            Team finalTeam = team;
+            source.sendFeedback(() -> Text.literal("Colour set. Name will appear as: " + finalTeam.getDisplayName().getString()), false);
+
             return 1;
         } catch (Exception e) {
             LOGGER.error("[{}] Failed to execute command", Pridetags.MOD_ID, e);
@@ -148,9 +157,9 @@ public class PrideTagsTeamCommand {
             PrideTagsPronouns selectedPronouns = null;
 
             for (PrideTagsPronouns pronoun : pronounsList) {
-                LOGGER.debug("[{}] Checking pronoun {}", Pridetags.MOD_ID, pronoun.getName());
-                if (pronoun.getName().equalsIgnoreCase(pronouns)) {
-                    LOGGER.info("[{}] Player {}, Selected pronoun {}", Pridetags.MOD_ID, player.getName().getString(), pronoun.getName());
+                LOGGER.debug("[{}] Checking pronoun {}", Pridetags.MOD_ID, pronoun.name());
+                if (pronoun.name().equalsIgnoreCase(pronouns)) {
+                    LOGGER.info("[{}] Player {}, Selected pronoun {}", Pridetags.MOD_ID, player.getName().getString(), pronoun.name());
                     selectedPronouns = pronoun;
                     break;
                 }
@@ -163,16 +172,20 @@ public class PrideTagsTeamCommand {
             }
 
             Scoreboard scoreboard = context.getSource().getServer().getScoreboard();
-            Team currentTeam = scoreboard.getScoreHolderTeam(player.getNameForScoreboard());
+            final Team currentTeam = scoreboard.getScoreHolderTeam(player.getNameForScoreboard());
 
             if (currentTeam != null) {
                 String currentPronouns = currentTeam.getSuffix().getString();
-                if (currentPronouns != null && currentPronouns.equals(selectedPronouns.getDisplay())) {
-                    LOGGER.info("[{}] Player {} already in team {}, with same pronouns: {}. Skipping.", Pridetags.MOD_ID, player.getName().getString(), currentTeam.getName(), selectedPronouns.getDisplay());
+                if (currentPronouns != null && currentPronouns.equals(selectedPronouns.display())) {
+                    LOGGER.info("[{}] Player {} already in team {}, with same pronouns: {}. Skipping.",
+                            Pridetags.MOD_ID, player.getName().getString(), currentTeam.getName(), selectedPronouns.display());
                     return 0;
                 }
-                LOGGER.info("[{}] Player {} already in team {}, updating pronouns to: {}", Pridetags.MOD_ID, player.getName().getString(), currentTeam.getName(), selectedPronouns.getDisplay());
-                currentTeam.setSuffix(Text.literal(PRONOUNS_PREFIX + selectedPronouns.getDisplay()).formatted(Formatting.GRAY));
+                LOGGER.info("[{}] Player {} already in team {}, updating pronouns to: {}",
+                        Pridetags.MOD_ID, player.getName().getString(), currentTeam.getName(), selectedPronouns.display());
+                currentTeam.setSuffix(Text.literal(PRONOUNS_PREFIX + selectedPronouns.display()).formatted(Formatting.GRAY));
+                source.sendFeedback(() -> Text.literal("Pronouns set. Name will appear as: " + currentTeam.getDisplayName().getString()), false);
+
                 return 1;
             }
 
@@ -185,8 +198,11 @@ public class PrideTagsTeamCommand {
                 team = scoreboard.addTeam(teamName);
             }
 
-            team.setSuffix(Text.literal(PRONOUNS_PREFIX + selectedPronouns.getDisplay()).formatted(Formatting.GRAY));
+            team.setSuffix(Text.literal(PRONOUNS_PREFIX + selectedPronouns.display()).formatted(Formatting.GRAY));
             team.setColor(DEFAULT_COLOUR);
+            scoreboard.addScoreHolderToTeam(player.getNameForScoreboard(), team);
+            Team finalTeam = team;
+            source.sendFeedback(() -> Text.literal("Pronouns set. Name will appear as: " + finalTeam.getDisplayName().getString()), false);
             return 1;
         } catch (Exception e) {
             LOGGER.error("[{}] Failed to execute command", Pridetags.MOD_ID, e);
@@ -194,7 +210,36 @@ public class PrideTagsTeamCommand {
         }
     }
 
-    private static Formatting getFormattingFromString(String colour) {
+    private static int executeReset(CommandContext<ServerCommandSource> context) {
+        try {
+            LOGGER.info("[{}] Executing `/pridetag reset` command", Pridetags.MOD_ID);
+            ServerCommandSource source = context.getSource();
+            ServerPlayerEntity player = source.getPlayerOrThrow();
+            if (!player.isPlayer()) {
+                LOGGER.warn("[{}] Command `/pridetag pronouns` executed by non-player entity", Pridetags.MOD_ID);
+                source.sendFeedback(() -> Text.literal("You must be a player to use this command"), false);
+            }
+
+            Scoreboard scoreboard = context.getSource().getServer().getScoreboard();
+            Team currentTeam = scoreboard.getScoreHolderTeam(player.getNameForScoreboard());
+
+            if (currentTeam != null) {
+                LOGGER.info("[{}] Player {} already in team {}, resetting to: None",
+                        Pridetags.MOD_ID, player.getName().getString(), currentTeam.getName());
+                currentTeam.setColor(DEFAULT_COLOUR);
+                currentTeam.setSuffix(Text.literal(""));
+                return 1;
+            } else {
+                LOGGER.info("[{}] Player {} not in team. Skipping.", Pridetags.MOD_ID, player.getName().getString());
+                return 0;
+            }
+        } catch (Exception e) {
+            LOGGER.error("[{}] Failed to execute command", Pridetags.MOD_ID, e);
+            return 0;
+        }
+    }
+
+    private static Formatting getFormattingFromString(@NotNull String colour) {
         return switch (colour.toLowerCase()) {
             case "red" -> Formatting.RED;
             case "dark_red" -> Formatting.DARK_RED;
