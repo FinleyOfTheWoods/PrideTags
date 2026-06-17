@@ -1,18 +1,18 @@
 package uk.co.finleyofthewoods.pridetags.config;
 
 import com.google.gson.Gson;
+import lombok.extern.slf4j.Slf4j;
 import net.fabricmc.loader.api.FabricLoader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import uk.co.finleyofthewoods.pridetags.Pridetags;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
+@Slf4j
 public class PrideTagsPronounsConfig {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PrideTagsPronounsConfig.class);
     private static PrideTagsPronounsConfig INSTANCE;
     private static final Gson GSON = new Gson();
     private static final File PRONOUNS_CONFIG_FILE = FabricLoader.getInstance().getConfigDir().resolve("pride_tags/pronouns.json").toFile();
@@ -20,7 +20,7 @@ public class PrideTagsPronounsConfig {
     private final PrideTagsPronouns[] pronouns;
 
     public PrideTagsPronounsConfig() {
-        LOGGER.info("[{}] Loading default pronouns config", Pridetags.MOD_ID);
+        log.info("Loading default pronouns config");
         this.pronouns = new PrideTagsPronouns[]{
                 new PrideTagsPronouns("they_them", "They/Them"),
                 new PrideTagsPronouns("he_him", "He/Him"),
@@ -45,16 +45,16 @@ public class PrideTagsPronounsConfig {
 
     public static void load() {
         if (PRONOUNS_CONFIG_FILE.exists()) {
-            LOGGER.info("[{}] Loading pronouns config from {}", Pridetags.MOD_ID, PRONOUNS_CONFIG_FILE.getAbsolutePath());
+            log.info("Loading pronouns config from {}", PRONOUNS_CONFIG_FILE.getAbsolutePath());
             try (FileReader reader = new FileReader(PRONOUNS_CONFIG_FILE)) {
                 INSTANCE = GSON.fromJson(reader, PrideTagsPronounsConfig.class);
             } catch (IOException e) {
-                LOGGER.error("[{}] Failed to load pronouns config. Loading defaults.", Pridetags.MOD_ID, e);
+                log.error("Failed to load pronouns config. Loading defaults.", e);
                 INSTANCE = new PrideTagsPronounsConfig();
                 save();
             }
         } else {
-            LOGGER.info("[{}] No pronouns config found. Loading defaults.", Pridetags.MOD_ID);
+            log.info("No pronouns config found. Loading defaults.");
             INSTANCE = new PrideTagsPronounsConfig();
             save();
         }
@@ -63,20 +63,20 @@ public class PrideTagsPronounsConfig {
     public static void save() {
         try {
             if (!PRONOUNS_CONFIG_FILE.getParentFile().exists()) {
-                LOGGER.info("[{}] Creating config directory {}", Pridetags.MOD_ID, PRONOUNS_CONFIG_FILE.getParentFile().getAbsolutePath());
+                log.info("Creating config directory {}", PRONOUNS_CONFIG_FILE.getParentFile().getAbsolutePath());
                 boolean mkdirs = PRONOUNS_CONFIG_FILE.getParentFile().mkdirs();
-                if (!mkdirs) LOGGER.warn("[{}] Failed to create config directory {}", Pridetags.MOD_ID, PRONOUNS_CONFIG_FILE.getParentFile().getAbsolutePath());
+                if (!mkdirs) log.warn("Failed to create config directory {}", PRONOUNS_CONFIG_FILE.getParentFile().getAbsolutePath());
             }
             try (FileWriter writer = new FileWriter(PRONOUNS_CONFIG_FILE)) {
-                LOGGER.info("[{}] Saving pronouns config to {}", Pridetags.MOD_ID, PRONOUNS_CONFIG_FILE.getAbsolutePath());
+                log.info("Saving pronouns config to {}", PRONOUNS_CONFIG_FILE.getAbsolutePath());
                 GSON.toJson(INSTANCE, writer);
             }
         } catch (IOException e) {
-            LOGGER.error("[{}] Failed to save pronouns config.", Pridetags.MOD_ID, e);
+            log.error("Failed to save pronouns config.", e);
         }
     }
 
-    public PrideTagsPronouns[] getPronouns() {
-        return pronouns;
+    public List<PrideTagsPronouns> getPronouns() {
+        return Arrays.stream(pronouns).toList();
     }
 }
