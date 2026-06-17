@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
+import net.minecraft.world.scores.TeamColor;
 import org.jetbrains.annotations.NotNull;
 import uk.co.finleyofthewoods.pridetags.config.PrideTagsColour;
 import uk.co.finleyofthewoods.pridetags.config.PrideTagsColourConfig;
@@ -21,6 +22,7 @@ import net.minecraft.commands.CommandSourceStack;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static com.mojang.brigadier.arguments.StringArgumentType.string;
@@ -32,7 +34,7 @@ import static net.minecraft.commands.Commands.literal;
 public class PrideTagsTeamCommand {
     private static final PrideTagsColourConfig CONFIG = PrideTagsColourConfig.get();
     private static final PrideTagsPronounsConfig PRONOUNS_CONFIG = PrideTagsPronounsConfig.get();
-    private static final ChatFormatting DEFAULT_COLOUR = ChatFormatting.WHITE;
+    private static final TeamColor DEFAULT_COLOUR = TeamColor.WHITE;
     private static final String PRONOUNS_PREFIX = " • ";
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context, CommandSelection selection) {
@@ -109,7 +111,7 @@ public class PrideTagsTeamCommand {
             }
 
             PlayerTeam team = getOrCreateTeam(player);
-            team.setColor(getFormattingFromString(selectedColour.colour()));
+            team.setColor(Optional.of(getFormattingFromString(selectedColour.colour())));
 
             return 1;
         } catch (Exception e) {
@@ -159,7 +161,7 @@ public class PrideTagsTeamCommand {
                 return 0;
             }
             team.setPlayerSuffix(Component.literal(""));
-            team.setColor(DEFAULT_COLOUR);
+            team.setColor(Optional.of(DEFAULT_COLOUR));
             return 0;
         } catch (Exception e) {
             log.error("Failed to execute command reset", e);
@@ -167,21 +169,21 @@ public class PrideTagsTeamCommand {
         }
     }
 
-    private static ChatFormatting getFormattingFromString(@NotNull String colour) {
+    private static TeamColor getFormattingFromString(@NotNull String colour) {
         return switch (colour.toLowerCase()) {
-            case "red" -> ChatFormatting.RED;
-            case "dark_red" -> ChatFormatting.DARK_RED;
-            case "aqua" -> ChatFormatting.AQUA;
-            case "dark_aqua" -> ChatFormatting.DARK_AQUA;
-            case "blue" -> ChatFormatting.BLUE;
-            case "dark_blue" -> ChatFormatting.DARK_BLUE;
-            case "green" -> ChatFormatting.GREEN;
-            case "yellow" -> ChatFormatting.YELLOW;
-            case "gold" -> ChatFormatting.GOLD;
-            case "dark_purple" -> ChatFormatting.DARK_PURPLE;
-            case "light_purple" -> ChatFormatting.LIGHT_PURPLE;
-            case "black" -> ChatFormatting.BLACK;
-            case "white" -> ChatFormatting.WHITE;
+            case "red" -> TeamColor.RED;
+            case "dark_red" -> TeamColor.DARK_RED;
+            case "aqua" -> TeamColor.AQUA;
+            case "dark_aqua" -> TeamColor.DARK_AQUA;
+            case "blue" -> TeamColor.BLUE;
+            case "dark_blue" -> TeamColor.DARK_BLUE;
+            case "green" -> TeamColor.GREEN;
+            case "yellow" -> TeamColor.YELLOW;
+            case "gold" -> TeamColor.GOLD;
+            case "dark_purple" -> TeamColor.DARK_PURPLE;
+            case "light_purple" -> TeamColor.LIGHT_PURPLE;
+            case "black" -> TeamColor.BLACK;
+            case "white" -> TeamColor.WHITE;
             default -> DEFAULT_COLOUR;
         };
     }
