@@ -1,17 +1,15 @@
 package uk.co.finleyofthewoods.pridetags.config;
 
 import com.google.gson.Gson;
+import lombok.extern.slf4j.Slf4j;
 import net.fabricmc.loader.api.FabricLoader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import uk.co.finleyofthewoods.pridetags.Pridetags;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 
+@Slf4j
 public class PrideTagsColourConfig {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PrideTagsColourConfig.class);
     private static PrideTagsColourConfig INSTANCE;
     private static final Gson GSON = new Gson();
     private static final File COLOURS_CONFIG_FILE = FabricLoader.getInstance().getConfigDir().resolve("pride_tags/teams.json").toFile();
@@ -19,7 +17,7 @@ public class PrideTagsColourConfig {
     private final PrideTagsColour[] colours;
 
     public PrideTagsColourConfig() {
-        LOGGER.info("[{}] Loading default config", Pridetags.MOD_ID);
+        log.info("Loading default config");
         this.colours = new PrideTagsColour[]{
                 new PrideTagsColour("Red", "red"),
                 new PrideTagsColour("DarkRed", "dark_red"),
@@ -44,16 +42,16 @@ public class PrideTagsColourConfig {
 
     public static void load() {
         if (COLOURS_CONFIG_FILE.exists()) {
-            LOGGER.info("[{}] Loading teams config from {}", Pridetags.MOD_ID, COLOURS_CONFIG_FILE.getAbsolutePath());
+            log.info("Loading teams config from {}", COLOURS_CONFIG_FILE.getAbsolutePath());
             try (FileReader reader = new FileReader(COLOURS_CONFIG_FILE)) {
                 INSTANCE = GSON.fromJson(reader, PrideTagsColourConfig.class);
             } catch (Exception e) {
-                LOGGER.error("[{}] Failed to load teams config", Pridetags.MOD_ID, e);
+                log.error("Failed to load teams config", e);
                 INSTANCE = new PrideTagsColourConfig();
                 save();
             }
         } else {
-            LOGGER.info("[{}] No teams config found, using defaults", Pridetags.MOD_ID);
+            log.info("No teams config found, using defaults");
             INSTANCE = new PrideTagsColourConfig();
             save();
         }
@@ -62,16 +60,16 @@ public class PrideTagsColourConfig {
     public static void save() {
         try {
             if (!COLOURS_CONFIG_FILE.getParentFile().exists()) {
-                LOGGER.info("[{}] Creating config directory {}", Pridetags.MOD_ID, COLOURS_CONFIG_FILE.getParentFile().getAbsolutePath());
+                log.info("Creating config directory {}", COLOURS_CONFIG_FILE.getParentFile().getAbsolutePath());
                 boolean mkdirs = COLOURS_CONFIG_FILE.getParentFile().mkdirs();
-                if (!mkdirs) LOGGER.warn("[{}] Failed to create config directory {}", Pridetags.MOD_ID, COLOURS_CONFIG_FILE.getParentFile().getAbsolutePath());
+                if (!mkdirs) log.warn("Failed to create config directory {}", COLOURS_CONFIG_FILE.getParentFile().getAbsolutePath());
             }
             try (FileWriter writer = new FileWriter(COLOURS_CONFIG_FILE)) {
-                LOGGER.info("[{}] Saving teams config to {}", Pridetags.MOD_ID, COLOURS_CONFIG_FILE.getAbsolutePath());
+                log.info("Saving teams config to {}", COLOURS_CONFIG_FILE.getAbsolutePath());
                 GSON.toJson(INSTANCE, writer);
             }
         } catch (Exception e) {
-            LOGGER.error("[{}] Failed to save teams config", Pridetags.MOD_ID, e);
+            log.error("Failed to save teams config", e);
         }
     }
 
